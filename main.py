@@ -16,7 +16,10 @@ class Bank:
 
     def verify_client(self, client_cpf):
         ''' Metodo que verifica se o cliente é do banco'''
-        return client_cpf in self.clients
+        for client in self.clients:
+            if client.cpf == client_cpf:
+                return client
+        return False
 
     def verify_branch(self, branch):
         ''' Metodo que verifica se a agencia é do banco'''
@@ -90,8 +93,8 @@ class Account(ABC):
         ''' Metodo abstrado para sacar um determinado valor da conta'''
         self.balance -= value
 
-    @abstractmethod
     @classmethod
+    @abstractmethod
     def create(cls, client: Client):
         ''' Criando instacia de uma Conta'''
 
@@ -164,10 +167,13 @@ def login_menu(bank : Bank):
 
         if command == 'e':
             login_cpf = input('Digite seu CPF: ')
+            client = bank.verify_client(login_cpf)
 
-            if bank.verify_client(login_cpf):
-                # client_menu()
-                break # Retirar após client_menu() estiver pronto
+            if client:
+                client_menu(client)
+            else: print(f'@@@@ Cliente com o CPF: {login_cpf} NÂO ENCONTRADO! @@@@')
+
+                
 
 
 def client_menu(client : Client):
@@ -218,7 +224,25 @@ _______________________________________________________
                 CheckingAccount.create(client)
             elif account_type == 'p':
                 SavingAccount.create(client)
+            else:
+                print('@@@@ Comando Inválido! Tente Novamente @@@@')
+                continue
 
+        elif command == 'a':
+            print('''
+_______________________________________________________
+    Digite o Número da Conta que deseja acessar:''')
+            for acc in client.accounts:
+                print(acc)
+            print('_______________________________________________________')
+            account_choice = input('\nConta Escolhida: ')
+            #account_menu()
+            print(f'Acessando Conta: {account_choice}')
+            break
+
+        else:
+            print('@@@@ Comando Inválido! Tente Novamente @@@@')
+            continue
 
 
 
