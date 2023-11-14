@@ -109,7 +109,7 @@ class CheckingAccount(Account):
         if value < 0:
             print('@@@@ Falha no Saque: Por favor, Digite Apenas números Positivos! @@@@')
         elif self.balance < value:
-            if (self.balance - value) > self.limit:
+            if (self.balance - value) < self.limit:
                 print('@@@@ Falha no Saque: Limite Extra Ultrapassado. Saldo Insuficiente @@@@')
                 return None
             self.balance -= value
@@ -282,7 +282,7 @@ def account_menu(account : Account):
             account.deposit(value)
 
         if command == 's':
-            value = float(input('########## Quanto Deseja Depositar? '))
+            value = float(input('########## Quanto Deseja Sacar? '))
             account.withdraw(value)
 
         if command == 'e':
