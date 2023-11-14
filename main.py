@@ -244,7 +244,11 @@ _______________________________________________________
                 print(acc.number)
             print('_______________________________________________________')
             account_choice = int(input('\nConta Escolhida: '))
-            account = client.bank.verify_account(account_choice)
+            def auth(client : Client):
+                for acc in client.accounts:
+                    if acc.number == account_choice:
+                        return client.bank.verify_account(account_choice)
+            account = auth(client)
             if account:
                 account_menu(account)
             else:
