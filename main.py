@@ -12,7 +12,11 @@ class Bank:
 
     def verify_account(self, account):
         ''' Metodo que verifica se uma conta é do banco'''
-        return account in self.accounts
+        for acc in self.accounts:
+            if acc.number == account:
+                return acc
+        return False
+            
 
     def verify_client(self, client_cpf):
         ''' Metodo que verifica se o cliente é do banco'''
@@ -54,7 +58,7 @@ class Person(ABC):
 
 class Client(Person):
     '''Classe Client, herdando dados da Pessoa'''
-    def __init__(self, name, cpf, age, address, bank):
+    def __init__(self, name, cpf, age, address, bank : Bank):
         super().__init__(name, cpf, age, address)
         self.accounts = []
         self.bank = bank
@@ -86,6 +90,8 @@ class Account(ABC):
 
     def deposit(self, value):
         ''' Metodo para depoistar um determinado valor na conta'''
+        if value < 0:
+            print('@@@@ Por favor, Digite números Positivos @@@@')
         self.balance += value
 
     @abstractmethod
@@ -107,7 +113,15 @@ class CheckingAccount(Account):
 
 
     def withdraw(self, value):
-        self.balance -= value
+        if value < 0:
+            print('@@@@ Falha no Saque: Por favor, Digite Apenas números Positivos! @@@@')
+        elif self.balance < value:
+            if (self.balance - value) > self.limit:
+                print('@@@@ Falha no Saque: Limite Extra Ultrapassado. Saldo Insuficiente @@@@')
+                return None
+            self.balance -= value
+        else:
+            self.balance -= value
 
     @classmethod
     def create(cls, client : Client):
@@ -119,7 +133,6 @@ class CheckingAccount(Account):
         return new_account
 
 
-
 class SavingAccount(Account):
     ''' Classe Saving Account, herda dados de Account e possui atributos especias'''
     def __init__(self, number_, balance=0) -> None:
@@ -128,7 +141,12 @@ class SavingAccount(Account):
 
 
     def withdraw(self, value):
-        self.balance -= value
+        if value < 0:
+            print('@@@@ Falha no Saque: Por favor, Digite Apenas números Positivos! @@@@')
+        elif self.balance < value:
+            print('@@@@ Falha no Saque: Saldo INSUFICIENTE! @@@@')
+        else:
+            self.balance -= value
 
     @classmethod
     def create(cls, client: Client):
@@ -138,7 +156,6 @@ class SavingAccount(Account):
         client.bank.account_add(new_account)
         client.accounts.append(new_account.number)
         return new_account
-
 
 
 def login_menu(bank : Bank):
@@ -172,8 +189,6 @@ def login_menu(bank : Bank):
             if client:
                 client_menu(client)
             else: print(f'@@@@ Cliente com o CPF: {login_cpf} NÂO ENCONTRADO! @@@@')
-
-                
 
 
 def client_menu(client : Client):
@@ -236,13 +251,48 @@ _______________________________________________________
                 print(acc)
             print('_______________________________________________________')
             account_choice = input('\nConta Escolhida: ')
-            #account_menu()
-            print(f'Acessando Conta: {account_choice}')
+            account = client.bank.verify_account(account_choice)
+            if account:
+                account_menu(account)
+            else:
+                print('@@@@ Conta não Encontrada, Tente Novamente! @@@@')
+                continue
             break
 
         else:
             print('@@@@ Comando Inválido! Tente Novamente @@@@')
             continue
+
+
+def account_menu(account : Account):
+    ''' Menu para saque/deposito da Conta '''
+    while True:
+        menu_display = f'''
+            _______________________________________________________
+                    $$$ Conta número: {account.number} $$$
+
+                [s] Sacar
+                [d] Depositar
+                [e] Extrato
+                [q] Sair
+
+            _______________________________________________________
+
+            '''
+        command = input(menu_display)
+
+        if command == 'q':
+            break
+
+        if command == 'd':
+            value = float(input('########## Quanto Deseja Depositar? '))
+            account.deposit(value)
+
+        if command == 's':
+            value = float(input('########## Quanto Deseja Depositar? '))
+            account.withdraw(value)
+
+
 
 
 
