@@ -38,11 +38,7 @@ class Bank:
     
     def account_add(self, account):
         ''' Adcionando a conta especificada a lista de accounts'''
-        self.accounts.append(account.number)
-
-
-
-
+        self.accounts.append(account)
 
 
 class Person(ABC):
@@ -53,7 +49,6 @@ class Person(ABC):
         self.cpf = cpf
         self.age = age
         self.address = address
-
 
 
 class Client(Person):
@@ -76,8 +71,6 @@ class Client(Person):
         new_client = cls(name=name, cpf=cpf, age=age, address=address, bank=bank)
         bank.add_client(new_client)
         return new_client
-
-
 
 
 class Account(ABC):
@@ -129,7 +122,7 @@ class CheckingAccount(Account):
         account_number = len(client.bank.accounts)
         new_account = cls(account_number)
         client.bank.account_add(new_account)
-        client.accounts.append(new_account.number)
+        client.accounts.append(new_account)
         return new_account
 
 
@@ -154,7 +147,7 @@ class SavingAccount(Account):
         account_number = len(client.bank.accounts)
         new_account = cls(account_number)
         client.bank.account_add(new_account)
-        client.accounts.append(new_account.number)
+        client.accounts.append(new_account)
         return new_account
 
 
@@ -216,7 +209,7 @@ def client_menu(client : Client):
             if client.accounts:
                 print('_____ Suas Contas Cadastradas:')
                 for acc in client.accounts:
-                    print(acc)
+                    print(acc.number)
                 print()
                 continue
             else:
@@ -248,9 +241,9 @@ _______________________________________________________
 _______________________________________________________
     Digite o Número da Conta que deseja acessar:''')
             for acc in client.accounts:
-                print(acc)
+                print(acc.number)
             print('_______________________________________________________')
-            account_choice = input('\nConta Escolhida: ')
+            account_choice = int(input('\nConta Escolhida: '))
             account = client.bank.verify_account(account_choice)
             if account:
                 account_menu(account)
@@ -273,7 +266,7 @@ def account_menu(account : Account):
 
                 [s] Sacar
                 [d] Depositar
-                [e] Extrato
+                [e] Saldo
                 [q] Sair
 
             _______________________________________________________
@@ -292,6 +285,8 @@ def account_menu(account : Account):
             value = float(input('########## Quanto Deseja Depositar? '))
             account.withdraw(value)
 
+        if command == 'e':
+            print(account.balance)
 
 
 
