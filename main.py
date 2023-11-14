@@ -23,9 +23,16 @@ class Bank:
         return branch in self.branchs
 
     def add_client(self, client):
-        ''' Adcionando o client especificado a lista de accounts'''
+        ''' Adcionando o client especificado a lista de clients'''
         if self.verify_client(client.cpf):
             print(f'@@@@ O cliente com o CPF : {client.cpf} já Existe! @@@@')
+        else:
+            self.clients.append(client)
+    
+    def account_add(self, account):
+        ''' Adcionando a conta especificada a lista de accounts'''
+        self.accounts.append(account.number)
+
 
 
 
@@ -44,9 +51,10 @@ class Person(ABC):
 
 class Client(Person):
     '''Classe Client, herdando dados da Pessoa'''
-    def __init__(self, name, cpf, age, address):
+    def __init__(self, name, cpf, age, address, bank):
         super().__init__(name, cpf, age, address)
         self.accounts = []
+        self.bank = bank
 
     @classmethod
     def create(cls, bank : Bank):
@@ -58,7 +66,7 @@ class Client(Person):
         district = input('Digite o seu Bairro: ')
         state = input('Digite o UF: *MG*').upper()
         address = f"{street} - {district}/{state}"
-        new_client = cls(name=name, cpf=cpf, age=age, address=address)
+        new_client = cls(name=name, cpf=cpf, age=age, address=address, bank=bank)
         bank.add_client(new_client)
         return new_client
 
@@ -67,7 +75,7 @@ class Client(Person):
 
 class Account(ABC):
     ''' Classe Account, possui dados da conta'''
-    def __init__(self, number_, balance) -> None:
+    def __init__(self, number_, balance = 0) -> None:
         super().__init__()
         self.number = number_
         self.balance = balance
@@ -82,10 +90,15 @@ class Account(ABC):
         ''' Metodo abstrado para sacar um determinado valor da conta'''
         self.balance -= value
 
+    @abstractmethod
+    @classmethod
+    def create(cls, client: Client):
+        ''' Criando instacia de uma Conta'''
+
 
 class CheckingAccount(Account):
     ''' Classe CheckingAccount, herda dados de Account e possui atributos especiais'''
-    def __init__(self, number_, balance) -> None:
+    def __init__(self, number_, balance=0) -> None:
         super().__init__(number_, balance)
         self.limit = -500
 
@@ -93,16 +106,37 @@ class CheckingAccount(Account):
     def withdraw(self, value):
         self.balance -= value
 
+    @classmethod
+    def create(cls, client : Client):
+        ''' Criando uma instacia de Conta-Corrente'''
+        account_number = len(client.bank.accounts)
+        new_account = cls(account_number)
+        client.bank.account_add(new_account)
+        client.accounts.append(new_account.number)
+        return new_account
+
+
 
 class SavingAccount(Account):
     ''' Classe Saving Account, herda dados de Account e possui atributos especias'''
-    def __init__(self, number_, balance) -> None:
+    def __init__(self, number_, balance=0) -> None:
         super().__init__(number_, balance)
         self.limit = 0
 
 
     def withdraw(self, value):
         self.balance -= value
+
+    @classmethod
+    def create(cls, client: Client):
+        ''' Criando uma instacia de Conta Poupança'''
+        account_number = len(client.bank.accounts)
+        new_account = cls(account_number)
+        client.bank.account_add(new_account)
+        client.accounts.append(new_account.number)
+        return new_account
+
+
 
 def login_menu(bank : Bank):
     ''' Menu De Login do Banco informado '''
@@ -122,14 +156,74 @@ def login_menu(bank : Bank):
 
         if command == 'q':
             print('################# Tenha Um Ótimo Dia! #################')
+            break
 
         if command == 'c':
-            Client.create(Bank)
+            Client.create(bank)
             continue
 
         if command == 'e':
             login_cpf = input('Digite seu CPF: ')
 
             if bank.verify_client(login_cpf):
-                # todo client_menu()
+                # client_menu()
                 break # Retirar após client_menu() estiver pronto
+
+
+def client_menu(client : Client):
+    ''' Menu do Cliente após Login'''
+    while True:
+        menu_display = f'''
+        _______________________________________________________
+                $$$ Bem Vindo(a) {client.name} $$$
+
+            [l] Listar Contas
+            [a] Acessar Conta
+            [c] Criar Conta
+            [q] Sair
+
+        _______________________________________________________
+
+        '''
+        command = input(menu_display)
+
+        if command == 'q':
+            print('################# Tenha Um Ótimo Dia! #################')
+            break
+
+        elif command == 'l':
+            if client.accounts:
+                print('_____ Suas Contas Cadastradas:')
+                for acc in client.accounts:
+                    print(acc)
+                print()
+                continue
+            else:
+                print('@@@@ Você ainda não possui contas cadastradas @@@@')
+                continue
+        elif command == 'c':
+            account_type = input('''
+_______________________________________________________
+            Qual Tipo de Conta deseja Criar?
+                                 
+    [c] Conta-Corrente
+    [p] Conta Poupança
+    [q] Sair
+
+_______________________________________________________
+''')
+            if account_type == 'q':
+                continue
+            elif account_type == 'c':
+                CheckingAccount.create(client)
+            elif account_type == 'p':
+                SavingAccount.create(client)
+
+
+
+
+
+
+dio_Bank = Bank('DiO')
+
+login_menu(dio_Bank)
